@@ -17,7 +17,6 @@ class Seq2Seq(tf.keras.Model):
 		# TO DO
 
     def accuracy_function(self, prbs, labels, mask):
-        #TO DO
 		"""
 		DO NOT CHANGE
 
@@ -28,15 +27,22 @@ class Seq2Seq(tf.keras.Model):
 		:param mask:  tensor that acts as a padding mask [batch_size x window_size]
 		:return: scalar tensor of accuracy of the batch between 0 and 1
 		"""
+		decoded_symbols = tf.argmax(input=prbs, axis=2)
+		accuracy = tf.reduce_mean(tf.boolean_mask(tf.cast(tf.equal(decoded_symbols, labels), dtype=tf.float32),mask))
+		return accuracy
+
 
     def loss_function(self, prbs, labels, mask):
-		"""
-		Calculates the total model cross-entropy loss after one forward pass. 
-		Please use reduce sum here instead of reduce mean to make things easier in calculating per symbol accuracy.
-		
-		:param prbs:  float tensor, word prediction probabilities [batch_size x window_size x english_vocab_size]
-		:param labels:  integer tensor, word prediction labels [batch_size x window_size]
-		:param mask:  tensor that acts as a padding mask [batch_size x window_size]
-		:return: the loss of the model as a tensor
-		"""
-        #TO DO
+        """
+        Calculates the model cross-entropy loss after one forward pass
+        Please use reduce sum here instead of reduce mean to make things easier in calculating per symbol accuracy.
+
+        :param prbs:  float tensor, word prediction probabilities [batch_size x window_size x english_vocab_size]
+        :param labels:  integer tensor, word prediction labels [batch_size x window_size]
+        :param mask:  tensor that acts as a padding mask [batch_size x window_size]
+        :return: the loss of the model as a tensor
+        """
+
+        # Note: you can reuse this from rnn_model.
+
+        return tf.reduce_sum(tf.boolean_mask(tf.keras.losses.sparse_categorical_crossentropy(labels, prbs), mask))

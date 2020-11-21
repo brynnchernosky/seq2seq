@@ -7,8 +7,8 @@ def attention(model, decoder_hidden_state, encoder_output):
 
     score = tf.concat([decoder_hidden_state,encoder_output],0)
 
-    score = model.attention_weights1(cat)
-    score = model.attention_weights2(out)
+    score = model.attention_weights1(score)
+    score = model.attention_weights2(score)
     distribution = tf.nn.softmax(score)
 
     #produce attentive read from attention distribution
