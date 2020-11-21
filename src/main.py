@@ -1,5 +1,7 @@
 import numpy as np
 import tensorflow as tf
+from src.preprocess import get_data, FRENCH_WINDOW_SIZE, ENGLISH_WINDOW_SIZE
+
 
 def train(model, train_french, train_english, eng_padding_index):
 	"""
@@ -11,7 +13,7 @@ def train(model, train_french, train_english, eng_padding_index):
 	:param eng_padding_index: the padding index, the id of *PAD* token. This integer is used when masking padding labels.
 	:return: None
 	"""
-    #TO DO
+
     return None
 
 def test(model, test_french, test_english, eng_padding_index):
@@ -29,7 +31,18 @@ def test(model, test_french, test_english, eng_padding_index):
 	return None,None
 
 def main():
-    #TO DO - preprocess, generate model, train, test
+
+    train_english, test_english, \
+	train_french, test_french, \
+	english_vocab, french_vocab, eng_padding_index = get_data(
+        '../data/fls.txt', '../data/els.txt', '../data/flt.txt', '../data/elt.txt')
+
+    model_args = (FRENCH_WINDOW_SIZE, len(french_vocab), ENGLISH_WINDOW_SIZE, len(english_vocab))
+
+    model = RNN_Seq2Seq(*model_args)
+
+    train(model, train_french, train_english, eng_padding_index)
+
 
 if __name__ == '__main__':
 	main()
