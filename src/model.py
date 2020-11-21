@@ -4,10 +4,8 @@ import tensorflow as tf
 
 class Seq2Seq(tf.keras.Model):
 
-
     def __init__(self, french_window_size, french_vocab_size, english_window_size, english_vocab_size):
-            super(Seq2Seq, self).__init__()
-
+        super(Seq2Seq, self).__init__()
 
     @tf.function
     def call(self, encoder_input, decoder_input):
@@ -18,7 +16,6 @@ class Seq2Seq(tf.keras.Model):
         """
 
     def accuracy_function(self, prbs, labels, mask):
-
         """
         Computes the batch accuracy
 
@@ -30,8 +27,6 @@ class Seq2Seq(tf.keras.Model):
         decoded_symbols = tf.argmax(input=prbs, axis=2)
         accuracy = tf.reduce_mean(tf.boolean_mask(tf.cast(tf.equal(decoded_symbols, labels), dtype=tf.float32), mask))
         return accuracy
-
-
 
     def loss_function(self, prbs, labels, mask):
         """
