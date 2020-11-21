@@ -3,7 +3,7 @@ import tensorflow as tf
 import attention as attention
 import scratchpad as scratchpad
 
-class Seq2Seq(tf.keras.Model):
+class Seq2SeqWithAttention(tf.keras.Model):
 	def __init__(self, french_window_size, french_vocab_size, english_window_size, english_vocab_size):
 		super(RNN_Seq2Seq, self).__init__()
         #TO DO

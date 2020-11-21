@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 import sys
 
+from src.enhanced_model import Seq2SeqWithAttention
 from src.model import Seq2Seq
 from src.preprocess import get_data, FRENCH_WINDOW_SIZE, ENGLISH_WINDOW_SIZE
 
@@ -45,7 +46,7 @@ def main():
     model_args = (FRENCH_WINDOW_SIZE, len(french_vocab), ENGLISH_WINDOW_SIZE, len(english_vocab))
 
     if sys.argv[1] == "RNN":
-        model = None
+        model = Seq2SeqWithAttention(*model_args)
     else:
         model = Seq2Seq(*model_args)
 
