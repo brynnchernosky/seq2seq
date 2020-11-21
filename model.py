@@ -16,12 +16,6 @@ class Seq2Seq(tf.keras.Model):
 	
 		# TO DO
 
-    def attention(self, decoder_hidden_state, encoder_output):
-        #TO DO, return attentive read
-
-    def scratchpad(self, decoder_hidden_state,  encoder_output, attentive_read)
-        #TO DO, return updated encoder output
-
     def accuracy_function(self, prbs, labels, mask):
         #TO DO
 		"""
