@@ -6,7 +6,25 @@ import scratchpad as scratchpad
 class Seq2SeqWithAttention(tf.keras.Model):
     def __init__(self, french_window_size, french_vocab_size, english_window_size, english_vocab_size):
         super(RNN_Seq2Seq, self).__init__()
-        #TO DO
+
+		self.french_vocab_size = french_vocab_size  # The size of the french vocab
+		self.english_vocab_size = english_vocab_size  # The size of the english vocab
+
+		self.french_window_size = french_window_size  # The french window size
+		self.english_window_size = english_window_size  # The english window size
+
+		self.batch_size = 100
+		self.embedding_size = 40
+		self.learning_rate = 0.01
+
+		self.gru_encode = tf.keras.layers.GRU(256, return_sequences=True, return_state=True)
+		self.gru_decode = tf.keras.layers.GRU(256, return_sequences=True, return_state=True)
+		self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+		self.feed_forward1 = tf.keras.layers.Dense(256, activation='relu')
+		self.feed_forward2 = tf.keras.layers.Dense(self.english_vocab_size, activation='softmax')
+		self.eng_embed = tf.Variable(tf.random.truncated_normal([self.english_vocab_size, self.embedding_size], stddev=0.01))
+		self.french_embed = tf.Variable(tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
+
         self.attention_weights1 = tf.Variable(tf.random.truncated_normal([?,?], stddev=.1))
         self.attention_weights2 = tf.Variable(tf.random.truncated_normal([?,?], stddev=.1))
         self.scratchpad_dense1 = tf.keras.layers.Dense(?, activation='relu')
@@ -19,7 +37,12 @@ class Seq2SeqWithAttention(tf.keras.Model):
         :param decoder_input: batched ids corresponding to english sentences
         :return prbs: The 3d probabilities as a tensor, [batch_size x window_size x english_vocab_size]
         """
-    
+
+ 		french_embedded_inputs = tf.nn.embedding_lookup(self.french_embed, encoder_input)
+ 		layer, encoder_output = self.gru_encode(french_embedded_inputs)
+
+		eng_embedded_inputs = tf.nn.embedding_lookup(self.eng_embed, decoder_input)
+        
         # TO DO
         for input in encoder_output:
             attentive_read = attention(self, decoder_hidden_state, input)
