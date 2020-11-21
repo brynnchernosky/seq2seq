@@ -1,5 +1,7 @@
 import numpy as np
 import tensorflow as tf
+from src.preprocess import get_data, FRENCH_WINDOW_SIZE, ENGLISH_WINDOW_SIZE
+
 
 def train(model, train_french, train_english, eng_padding_index):
 	"""
@@ -11,7 +13,7 @@ def train(model, train_french, train_english, eng_padding_index):
 	:param eng_padding_index: the padding index, the id of *PAD* token. This integer is used when masking padding labels.
 	:return: None
 	"""
-    #TO DO
+
     return None
 
 def test(model, test_french, test_english, eng_padding_index):
