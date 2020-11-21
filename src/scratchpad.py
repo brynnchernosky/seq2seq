@@ -13,4 +13,4 @@ def scratchpad(model, decoder_hidden_state, encoder_output, attentive_read)
     global_update = tf.math.tanh(global_update)
 
     #update encoder states, equation 4
-    
+    encoder_output = tf.matmul(update_prob,encoder_output) + tf.matmul((1-update_prob),global_update)
