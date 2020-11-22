@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-def scratchpad(model, decoder_hidden_state, encoder_output, attentive_read)
+def scratchpad(model, decoder_hidden_state, encoder_output, attentive_read):
     #compute update probability for each state, equation 5
     update_prob = tf.concat([decoder_hidden_state,attentive_read,encoder_output],0)
     update_prob = model.scratchpad_dense1(update_prob)
