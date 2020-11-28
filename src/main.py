@@ -16,7 +16,24 @@ def train(model, train_french, train_english, eng_padding_index):
     :param eng_padding_index: the padding index, the id of *PAD* token. This integer is used when masking padding labels.
     :return: None
     """
-    pass
+    cur_range = 0
+
+    while cur_range + model.batch_size < len(train_french):
+        with tf.GradientTape() as tape:
+            probs = model.call(train_french[cur_range: cur_range + model.batch_size],
+                               train_english[cur_range: cur_range + model.batch_size, :-1])
+
+            loss_mask = train_english[cur_range: cur_range + model.batch_size, 1:] != eng_padding_index
+
+            cur_loss = model.loss_function(probs, train_english[cur_range: cur_range + model.batch_size, 1:], loss_mask)
+
+            cur_loss /= np.count_nonzero(loss_mask)
+
+            print(cur_loss)
+
+        gradients = tape.gradient(cur_loss, model.trainable_variables)
+        model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+        cur_range += model.batch_size
 
 
 def test(model, test_french, test_english, eng_padding_index):
@@ -30,8 +47,27 @@ def test(model, test_french, test_english, eng_padding_index):
     e.g. (my_perplexity, my_accuracy)
     """
 
-    return None, None
+    total_loss = 0
+	total_acc = 0
+	total_words = 0
+	cur_range = 0
 
+	while cur_range + model.batch_size < len(test_french):
+		probs = model.call(test_french[cur_range: cur_range + model.batch_size], test_english[cur_range: cur_range + model.batch_size, :-1])
+		loss_mask = test_english[cur_range: cur_range + model.batch_size, 1:] != eng_padding_index
+
+		batch_words = np.count_nonzero(loss_mask)
+		total_words += batch_words
+
+		total_loss += model.loss_function(probs, test_english[cur_range: cur_range + model.batch_size, 1:], loss_mask)
+		total_acc += batch_words*(model.accuracy_function(probs, test_english[cur_range: cur_range + model.batch_size, 1:], loss_mask))
+
+		cur_range += model.batch_size
+
+	perplexity = np.exp(total_loss/total_words)
+	accuracy = total_acc/total_words
+
+	return perplexity, accuracy
 
 def main():
     if len(sys.argv) != 2 or sys.argv[1] not in {"RNN", "ENHANCED"}:
@@ -51,6 +87,7 @@ def main():
         model = Seq2Seq(*model_args)
 
     train(model, train_french, train_english, eng_padding_index)
+
 
 
 if __name__ == '__main__':
