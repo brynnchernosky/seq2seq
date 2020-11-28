@@ -35,24 +35,26 @@ class Seq2SeqWithAttention(tf.keras.Model):
         :param decoder_input: batched ids corresponding to english sentences
         :return prbs: The 3d probabilities as a tensor, [batch_size x window_size x english_vocab_size]
         """
+        print(encoder_input)
+        print("\n")
+        print(decoder_input)
         french_embedded_inputs = tf.nn.embedding_lookup(self.french_embed, encoder_input)
         eng_embedded_inputs = tf.nn.embedding_lookup(self.eng_embed, decoder_input)
         enc_outputs, enc_state = self.gru_encoder(french_embedded_inputs)
         decoder_state = enc_state
         final_output = tf.Variable(np.empty(len(eng_embedded_inputs)))
+        i=0
 
         # in lecture he starts with the stop token as the first input
-        output_word, decoder_state = self.gru_decoder_cell.call("*STOP*", decoder_state, True)
-        final_output[0] = output_word
 
         for w in eng_embedded_inputs:
 
             # this needs to end if W is the stop token..? i think
             # the attentive read enc_output
             attentive_read = attention.attention(self, decoder_state, enc_outputs)
-            decoder_state = self.dense_state_update(tf.concat(decoder_state, attentive_read, output_word))
-            output_word, decoder_state = self.gru_decoder_cell.call(w, decoder_state, True)
+            final_output[i], decoder_state = self.gru_decoder_cell.call(attentive_read, decoder_state, True)
             enc_outputs = scratchpad.scratchpad(self, decoder_state, enc_outputs, attentive_read)
+            i += 1
 
     def accuracy_function(self, prbs, labels, mask):
         """
