@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
-import src.attention as attention
-import src.scratchpad as scratchpad
+import attention as attention
+import scratchpad as scratchpad
 
 class Seq2SeqWithAttention(tf.keras.Model):
     def __init__(self, french_window_size, french_vocab_size, english_window_size, english_vocab_size):
