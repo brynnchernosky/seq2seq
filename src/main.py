@@ -2,9 +2,9 @@ import numpy as np
 import tensorflow as tf
 import sys
 
-from src.enhanced_model import Seq2SeqWithAttention
-from src.model import Seq2Seq
-from src.preprocess import get_data, FRENCH_WINDOW_SIZE, ENGLISH_WINDOW_SIZE
+from enhanced_model import Seq2SeqWithAttention
+from model import Seq2Seq
+from preprocess import get_data, FRENCH_WINDOW_SIZE, ENGLISH_WINDOW_SIZE
 
 
 def train(model, train_french, train_english, eng_padding_index):
@@ -23,6 +23,10 @@ def train(model, train_french, train_english, eng_padding_index):
 
     while cur_range + model.batch_size < len(train_french):
         with tf.GradientTape() as tape:
+            model.call(train_french[cur_range: cur_range + model.batch_size],
+                               train_english[cur_range: cur_range + model.batch_size, :-1])
+
+
             probs = model.call(train_french[cur_range: cur_range + model.batch_size],
                                train_english[cur_range: cur_range + model.batch_size, :-1])
 
@@ -51,43 +55,52 @@ def test(model, test_french, test_english, eng_padding_index):
     """
 
     total_loss = 0
-	total_acc = 0
-	total_words = 0
-	cur_range = 0
+    total_acc = 0
+    total_words = 0
+    cur_range = 0
 
-	while cur_range + model.batch_size < len(test_french):
-		probs = model.call(test_french[cur_range: cur_range + model.batch_size], test_english[cur_range: cur_range + model.batch_size, :-1])
-		loss_mask = test_english[cur_range: cur_range + model.batch_size, 1:] != eng_padding_index
+    while cur_range + model.batch_size < len(test_french):
+        probs = model.call(test_french[cur_range: cur_range + model.batch_size], test_english[cur_range: cur_range + model.batch_size, :-1])
+        loss_mask = test_english[cur_range: cur_range + model.batch_size, 1:] != eng_padding_index
 
-		batch_words = np.count_nonzero(loss_mask)
-		total_words += batch_words
+        batch_words = np.count_nonzero(loss_mask)
+        total_words += batch_words
 
-		total_loss += model.loss_function(probs, test_english[cur_range: cur_range + model.batch_size, 1:], loss_mask)
-		total_acc += batch_words*(model.accuracy_function(probs, test_english[cur_range: cur_range + model.batch_size, 1:], loss_mask))
+        total_loss += model.loss_function(probs, test_english[cur_range: cur_range + model.batch_size, 1:], loss_mask)
+        total_acc += batch_words*(model.accuracy_function(probs, test_english[cur_range: cur_range + model.batch_size, 1:], loss_mask))
 
-		cur_range += model.batch_size
+        cur_range += model.batch_size
 
-	perplexity = np.exp(total_loss/total_words)
-	accuracy = total_acc/total_words
+    perplexity = np.exp(total_loss/total_words)
+    accuracy = total_acc/total_words
 
-	return perplexity, accuracy
+    return perplexity, accuracy
 
 def main():
-    if len(sys.argv) != 2 or sys.argv[1] not in {"RNN", "ENHANCED"}:
-        print("USAGE: python main.py <Model Type>")
-        print("<Model Type>: [RNN/ENHANCED]")
-        exit()
+    # if len(sys.argv) != 2 or sys.argv[1] not in {"RNN", "ENHANCED"}:
+    #     print("USAGE: python main.py <Model Type>")
+    #     print("<Model Type>: [RNN/ENHANCED]")
+    #     exit()
 
     train_english, test_english, train_french, test_french, \
         english_vocab, french_vocab, eng_padding_index = get_data(
             '../data/fls.txt', '../data/els.txt', '../data/flt.txt', '../data/elt.txt')
 
+    print("data has been preprocessed")
+
     model_args = (FRENCH_WINDOW_SIZE, len(french_vocab), ENGLISH_WINDOW_SIZE, len(english_vocab))
 
-    if sys.argv[1] == "RNN":
-        model = Seq2SeqWithAttention(*model_args)
-    else:
-        model = Seq2Seq(*model_args)
+    print("running enhanced model")
+    model = Seq2SeqWithAttention(*model_args)
+    print(model)
+    model.call(5,5,5,5)
+    #
+    # if sys.argv[1] == "RNN":
+    #     print("running normal model")
+    #     model = Seq2Seq(*model_args)
+    # else:
+    #     print("running enhanced model")
+    #     model = Seq2SeqWithAttention(*model_args)
 
     train(model, train_french, train_english, eng_padding_index)
 
