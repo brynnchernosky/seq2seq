@@ -3,6 +3,7 @@ import tensorflow as tf
 import attention as attention
 import scratchpad as scratchpad
 
+
 class Seq2SeqWithAttention(tf.keras.Model):
     def __init__(self, french_window_size, french_vocab_size, english_window_size, english_vocab_size):
         super(Seq2SeqWithAttention, self).__init__()
@@ -20,11 +21,14 @@ class Seq2SeqWithAttention(tf.keras.Model):
         self.dense_state_update = tf.keras.layers.Dense(256, activation='relu')
         self.feed_forward1 = tf.keras.layers.Dense(256, activation='relu')
         self.feed_forward2 = tf.keras.layers.Dense(self.english_vocab_size, activation='softmax')
-        self.eng_embed = tf.Variable(tf.random.truncated_normal([self.english_vocab_size, self.embedding_size], stddev=0.01))
-        self.french_embed = tf.Variable(tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
+        self.eng_embed = tf.Variable(
+            tf.random.truncated_normal([self.english_vocab_size, self.embedding_size], stddev=0.01))
+        self.french_embed = tf.Variable(
+            tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
 
-        self.attention_weights1 = tf.Variable(tf.random.truncated_normal([0, .1], stddev=.1))
-        self.attention_weights2 = tf.Variable(tf.random.truncated_normal([0, .1], stddev=.1))
+        # self.attention_weights1 = tf.Variable(tf.random.truncated_normal([0, .1], stddev=.1))
+        # self.attention_weights2 = tf.Variable(tf.random.truncated_normal([0, .1], stddev=.1))
+
         self.scratchpad_dense1 = tf.keras.layers.Dense(128, activation='relu')
         self.scratchpad_dense2 = tf.keras.layers.Dense(english_window_size)
 
@@ -43,12 +47,11 @@ class Seq2SeqWithAttention(tf.keras.Model):
         enc_outputs, enc_state = self.gru_encoder(french_embedded_inputs)
         decoder_state = enc_state
         final_output = tf.Variable(np.empty(len(eng_embedded_inputs)))
-        i=0
+        i = 0
 
         # in lecture he starts with the stop token as the first input
 
         for w in eng_embedded_inputs:
-
             # this needs to end if W is the stop token..? i think
             # the attentive read enc_output
             attentive_read = attention.attention(self, decoder_state, enc_outputs)
@@ -68,9 +71,8 @@ class Seq2SeqWithAttention(tf.keras.Model):
         :return: scalar tensor of accuracy of the batch between 0 and 1
         """
         decoded_symbols = tf.argmax(input=prbs, axis=2)
-        accuracy = tf.reduce_mean(tf.boolean_mask(tf.cast(tf.equal(decoded_symbols, labels), dtype=tf.float32),mask))
+        accuracy = tf.reduce_mean(tf.boolean_mask(tf.cast(tf.equal(decoded_symbols, labels), dtype=tf.float32), mask))
         return accuracy
-
 
     def loss_function(self, prbs, labels, mask):
         """
