@@ -17,6 +17,9 @@ def train(model, train_french, train_english, eng_padding_index):
     :return: None
     """
     cur_range = 0
+    total_loss = 0
+    total_acc = 0
+    total_words = 0
 
     while cur_range + model.batch_size < len(train_french):
         with tf.GradientTape() as tape:
