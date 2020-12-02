@@ -6,6 +6,9 @@ from enhanced_model import Seq2SeqWithAttention
 from model import Seq2Seq
 from preprocess import get_data, FRENCH_WINDOW_SIZE, ENGLISH_WINDOW_SIZE
 
+from scipy.stats import ttest_rel
+import matplotlib.pyplot as plt
+
 
 def train(model, train_french, train_english, eng_padding_index):
     """
@@ -77,6 +80,9 @@ def test(model, test_french, test_english, eng_padding_index):
     return perplexity, accuracy
 
 def main():
+
+    sample_size = 15
+
     # if len(sys.argv) != 2 or sys.argv[1] not in {"RNN", "ENHANCED"}:
     #     print("USAGE: python main.py <Model Type>")
     #     print("<Model Type>: [RNN/ENHANCED]")
@@ -102,8 +108,58 @@ def main():
     #     print("running enhanced model")
     #     model = Seq2SeqWithAttention(*model_args)
 
-    train(model, train_french, train_english, eng_padding_index)
+    #   Lists to hold normal model data and enhanced model data
 
+    normal_model_accuracy_data = []
+    enhanced_model_accuracy_data = []
+
+    normal_model_perplexity_data = []
+    enhanced_model_perplexity_data = []
+
+    for _ in range(sample_size):
+        #   Create model each round, train and test model and append accuracy from test() accordingly
+
+        normal_model = model(model_args)
+        enhanced_model = enchanced_model(model_args)
+
+        train(normal_model, train_french, train_english, eng_padding_index)
+        train(enchanced_model, train_french, train_english, eng_padding_index)
+
+        reg_perplexity, reg_acc = test(normal_model, test_french, test_english, eng_padding_index)[0]
+        enh_perplexity, enh_acc = test(enhanced_model, test_french, test_english, eng_padding_index)[0]
+
+        normal_model_accuracy_data.appened(reg_acc)
+        enhanced_model_accuracy_data.appened(enh_acc)
+
+        normal_model_perplexity_data.append(reg_perplexity)
+        enhanced_model_perplexity_data.append(enh_perplexity)
+
+    statistical_significance_test(normal_model_data, enhanced_model_data)
+
+    #   Generate scatter plot showing Accuracies and Perplexities of each model in different groups
+
+    graph = plt.figure()
+    axis = graph.add_subplot()
+
+    axis.scatter(normal_model_accuracy_data, normal_model_perplexity_data, c="red", label="Normal Model Data")
+    axis.scatter(enhanced_model_accuracy_data, enhanced_model_perplexity_data, c="blue", label="Enhanced Model Data")
+
+    plt.show()
+
+
+def statistical_significance_test(normal_model_data, enhanced_model_data):
+
+    #   Performs a paired T test on the normal model data and enchanced model data (accuracies only)
+
+    statistic_val, p_val = ttest_rel(normal_model_data, enhanced_model_data)
+
+    print(p_val)
+
+    if p_val < 0.5:
+        print("Difference in Accuracies is Statistically Significant")
+
+    else:
+        print("Difference in Accuracies is not Statistically Significant")
 
 
 if __name__ == '__main__':
