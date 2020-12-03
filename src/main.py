@@ -98,8 +98,8 @@ def main():
 
     print("running enhanced model")
     model = Seq2SeqWithAttention(*model_args)
-    print(model)
-    model.call(5,5,5,5)
+    train(model,train_french,train_english, eng_padding_index)
+
     #
     # if sys.argv[1] == "RNN":
     #     print("running normal model")
@@ -110,42 +110,41 @@ def main():
 
     #   Lists to hold normal model data and enhanced model data
 
-    normal_model_accuracy_data = []
-    enhanced_model_accuracy_data = []
-
-    normal_model_perplexity_data = []
-    enhanced_model_perplexity_data = []
-
-    
-    for _ in range(sample_size):
-        #   Create model each round, train and test model and append accuracy from test() accordingly
-
-        normal_model = model(model_args)
-        enhanced_model = enchanced_model(model_args)
-
-        train(normal_model, train_french, train_english, eng_padding_index)
-        train(enchanced_model, train_french, train_english, eng_padding_index)
-
-        reg_perplexity, reg_acc = test(normal_model, test_french, test_english, eng_padding_index)[0]
-        enh_perplexity, enh_acc = test(enhanced_model, test_french, test_english, eng_padding_index)[0]
-
-        normal_model_accuracy_data.appened(reg_acc)
-        enhanced_model_accuracy_data.appened(enh_acc)
-
-        normal_model_perplexity_data.append(reg_perplexity)
-        enhanced_model_perplexity_data.append(enh_perplexity)
-
-    statistical_significance_test(normal_model_data, enhanced_model_data)
-
-    #   Generate scatter plot showing Accuracies and Perplexities of each model in different groups
-
-    graph = plt.figure()
-    axis = graph.add_subplot()
-
-    axis.scatter(normal_model_accuracy_data, normal_model_perplexity_data, c="red", label="Normal Model Data")
-    axis.scatter(enhanced_model_accuracy_data, enhanced_model_perplexity_data, c="blue", label="Enhanced Model Data")
-
-    plt.show()
+    # normal_model_accuracy_data = []
+    # enhanced_model_accuracy_data = []
+    #
+    # normal_model_perplexity_data = []
+    # enhanced_model_perplexity_data = []
+    #
+    # for _ in range(sample_size):
+    #     #   Create model each round, train and test model and append accuracy from test() accordingly
+    #
+    #     normal_model = model(model_args)
+    #     enhanced_model = enchanced_model(model_args)
+    #
+    #     train(normal_model, train_french, train_english, eng_padding_index)
+    #     train(enchanced_model, train_french, train_english, eng_padding_index)
+    #
+    #     reg_perplexity, reg_acc = test(normal_model, test_french, test_english, eng_padding_index)[0]
+    #     enh_perplexity, enh_acc = test(enhanced_model, test_french, test_english, eng_padding_index)[0]
+    #
+    #     normal_model_accuracy_data.appened(reg_acc)
+    #     enhanced_model_accuracy_data.appened(enh_acc)
+    #
+    #     normal_model_perplexity_data.append(reg_perplexity)
+    #     enhanced_model_perplexity_data.append(enh_perplexity)
+    #
+    # statistical_significance_test(normal_model_data, enhanced_model_data)
+    #
+    # #   Generate scatter plot showing Accuracies and Perplexities of each model in different groups
+    #
+    # graph = plt.figure()
+    # axis = graph.add_subplot()
+    #
+    # axis.scatter(normal_model_accuracy_data, normal_model_perplexity_data, c="red", label="Normal Model Data")
+    # axis.scatter(enhanced_model_accuracy_data, enhanced_model_perplexity_data, c="blue", label="Enhanced Model Data")
+    #
+    # plt.show()
 
 
 def statistical_significance_test(normal_model_data, enhanced_model_data):
