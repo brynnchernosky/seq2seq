@@ -44,6 +44,7 @@ class Seq2SeqWithAttention(tf.keras.Model):
         print(decoder_input)
         french_embedded_inputs = tf.nn.embedding_lookup(self.french_embed, encoder_input)
         eng_embedded_inputs = tf.nn.embedding_lookup(self.eng_embed, decoder_input)
+        # h's        final state s0
         enc_outputs, enc_state = self.gru_encoder(french_embedded_inputs)
         decoder_state = enc_state
         final_output = tf.Variable(np.empty(len(eng_embedded_inputs)))
@@ -55,6 +56,8 @@ class Seq2SeqWithAttention(tf.keras.Model):
             # this needs to end if W is the stop token..? i think
             # the attentive read enc_output
             attentive_read = attention.attention(self, decoder_state, enc_outputs)
+            # . Update si using the most recently generated output token, yi−1, and the results
+            # of the attentive read (ci). ?????
             final_output[i], decoder_state = self.gru_decoder_cell.call(attentive_read, decoder_state, True)
             enc_outputs = scratchpad.scratchpad(self, decoder_state, enc_outputs, attentive_read)
             i += 1
