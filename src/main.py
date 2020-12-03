@@ -116,6 +116,7 @@ def main():
     normal_model_perplexity_data = []
     enhanced_model_perplexity_data = []
 
+    
     for _ in range(sample_size):
         #   Create model each round, train and test model and append accuracy from test() accordingly
 
