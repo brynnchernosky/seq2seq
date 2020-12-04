@@ -27,9 +27,9 @@ class Seq2SeqWithAttention(tf.keras.Model):
             tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
 
         self.attention_weights1 = tf.Variable(
-            tf.random.truncated_normal([200,15], stddev=0.01))
+            tf.random.truncated_normal([200, 512], stddev=0.01))
         self.attention_weights2 = tf.Variable(
-            tf.random.truncated_normal([100, 200], stddev=0.01))
+            tf.random.truncated_normal([100,200], stddev=0.01))
 
         self.scratchpad_dense1 = tf.keras.layers.Dense(128, activation='relu')
         self.scratchpad_dense2 = tf.keras.layers.Dense(english_window_size)
@@ -47,19 +47,22 @@ class Seq2SeqWithAttention(tf.keras.Model):
         # h's        final state s0
         enc_outputs, enc_state = self.gru_encoder(french_embedded_inputs)
         decoder_state = enc_state
-        final_output = np.zeros(len(eng_embedded_inputs))
+        final_output = []
 
         # in lecture he starts with the stop token as the first input
         for i in range(tf.size(eng_embedded_inputs)):
-            # this needs to end if W is the stop token..? i think
-            # the attentive read enc_output
             attentive_read = attention.attention_func(self, decoder_state, enc_outputs)
-            # . Update si using the most recently generated output token, yi−1, and the results
-            # of the attentive read (ci). ?????
-            print(tf.shape(attentive_read))
-            print(tf.shape(decoder_state))
-            final_output[i], decoder_state = self.gru_decoder_cell(attentive_read, decoder_state)
+            #produces tensor with shape batch size, embedding size
+
+            attentive_read = tf.expand_dims(attentive_read, 1)
+            #input to GRU is a 3D tensor, with shape [batch, timesteps, feature]; thus, we add a timestep dim
+
+            final_output_element, decoder_state = self.gru_decoder_cell(attentive_read, decoder_state)
+            final_output.append(final_output_element)
+
             enc_outputs = scratchpad.scratchpad(self, decoder_state, enc_outputs, attentive_read)
+
+        return tf.convert_to_tensor(final_output)
 
     def accuracy_function(self, prbs, labels, mask):
         """
