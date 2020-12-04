@@ -16,7 +16,7 @@ class Seq2SeqWithAttention(tf.keras.Model):
         self.learning_rate = 0.01
 
         self.gru_encoder = tf.keras.layers.GRU(256, return_sequences=True, return_state=True)
-        self.gru_decoder_cell = tf.keras.layers.GRUCell(256)
+        self.gru_decoder_cell = tf.keras.layers.GRU(256, return_sequences=True, return_state=True)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
         self.dense_state_update = tf.keras.layers.Dense(256, activation='relu')
         self.feed_forward1 = tf.keras.layers.Dense(256, activation='relu')
@@ -56,7 +56,7 @@ class Seq2SeqWithAttention(tf.keras.Model):
             attentive_read = attention.attention_func(self, decoder_state, enc_outputs)
             # . Update si using the most recently generated output token, yi−1, and the results
             # of the attentive read (ci). ?????
-            final_output[i], decoder_state = self.gru_decoder_cell.call(attentive_read, decoder_state, True)
+            final_output[i], decoder_state = self.gru_decoder_cell.call(attentive_read, decoder_state)
             enc_outputs = scratchpad.scratchpad(self, decoder_state, enc_outputs, attentive_read)
 
     def accuracy_function(self, prbs, labels, mask):

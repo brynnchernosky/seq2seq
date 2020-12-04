@@ -26,12 +26,10 @@ def train(model, train_french, train_english, eng_padding_index):
 
     while cur_range + model.batch_size < len(train_french):
         with tf.GradientTape() as tape:
-            model.call(train_french[cur_range: cur_range + model.batch_size],
-                               train_english[cur_range: cur_range + model.batch_size, :-1])
+            model.call(train_french[cur_range: cur_range + model.batch_size], train_english[cur_range: cur_range + model.batch_size, :-1])
 
 
-            probs = model.call(train_french[cur_range: cur_range + model.batch_size],
-                               train_english[cur_range: cur_range + model.batch_size, :-1])
+            probs = model.call(train_french[cur_range: cur_range + model.batch_size], train_english[cur_range: cur_range + model.batch_size, :-1])
 
             loss_mask = train_english[cur_range: cur_range + model.batch_size, 1:] != eng_padding_index
 
