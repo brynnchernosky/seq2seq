@@ -26,8 +26,10 @@ class Seq2SeqWithAttention(tf.keras.Model):
         self.french_embed = tf.Variable(
             tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
 
-        # self.attention_weights1 = tf.Variable(tf.random.truncated_normal([0, .1], stddev=.1))
-        # self.attention_weights2 = tf.Variable(tf.random.truncated_normal([0, .1], stddev=.1))
+        self.attention_weights1 = tf.Variable(
+            tf.random.truncated_normal([200,384000], stddev=0.01))
+        self.attention_weights2 = tf.Variable(
+            tf.random.truncated_normal([100, 200], stddev=0.01))
 
         self.scratchpad_dense1 = tf.keras.layers.Dense(128, activation='relu')
         self.scratchpad_dense2 = tf.keras.layers.Dense(english_window_size)
@@ -40,9 +42,6 @@ class Seq2SeqWithAttention(tf.keras.Model):
         :return prbs: The 3d probabilities as a tensor, [batch_size x window_size x english_vocab_size]
         """
         
-        print(encoder_input)
-        print("\n")
-        print(decoder_input)
         french_embedded_inputs = tf.nn.embedding_lookup(self.french_embed, encoder_input)
         eng_embedded_inputs = tf.nn.embedding_lookup(self.eng_embed, decoder_input)
         # h's        final state s0
@@ -51,12 +50,10 @@ class Seq2SeqWithAttention(tf.keras.Model):
         final_output = np.zeros(len(eng_embedded_inputs))
 
         # in lecture he starts with the stop token as the first input
-        print(decoder_state)
-        print(enc_outputs)
         for i in range(tf.size(eng_embedded_inputs)):
             # this needs to end if W is the stop token..? i think
             # the attentive read enc_output
-            attentive_read = attention.attention(self, decoder_state, enc_outputs)
+            attentive_read = attention.attention_func(self, decoder_state, enc_outputs)
             # . Update si using the most recently generated output token, yi−1, and the results
             # of the attentive read (ci). ?????
             final_output[i], decoder_state = self.gru_decoder_cell.call(attentive_read, decoder_state, True)
