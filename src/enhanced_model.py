@@ -27,7 +27,7 @@ class Seq2SeqWithAttention(tf.keras.Model):
             tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
 
         self.attention_weights1 = tf.Variable(
-            tf.random.truncated_normal([200,384000], stddev=0.01))
+            tf.random.truncated_normal([200,15], stddev=0.01))
         self.attention_weights2 = tf.Variable(
             tf.random.truncated_normal([100, 200], stddev=0.01))
 
@@ -56,7 +56,9 @@ class Seq2SeqWithAttention(tf.keras.Model):
             attentive_read = attention.attention_func(self, decoder_state, enc_outputs)
             # . Update si using the most recently generated output token, yi−1, and the results
             # of the attentive read (ci). ?????
-            final_output[i], decoder_state = self.gru_decoder_cell.call(attentive_read, decoder_state)
+            print(tf.shape(attentive_read))
+            print(tf.shape(decoder_state))
+            final_output[i], decoder_state = self.gru_decoder_cell(attentive_read, decoder_state)
             enc_outputs = scratchpad.scratchpad(self, decoder_state, enc_outputs, attentive_read)
 
     def accuracy_function(self, prbs, labels, mask):

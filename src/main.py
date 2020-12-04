@@ -24,16 +24,15 @@ def train(model, train_french, train_english, eng_padding_index):
     total_acc = 0
     total_words = 0
 
-    while cur_range + model.batch_size < len(train_french):
+    for i in range(0, np.shape(train_french)[0], model.batch_size):
+        french_training = train_french[i:i + model.batch_size]
+        english_training = train_english[i:i + model.batch_size]
         with tf.GradientTape() as tape:
-            model.call(train_french[cur_range: cur_range + model.batch_size], train_english[cur_range: cur_range + model.batch_size, :-1])
+            probs = model.call(french_training, english_training[:,:-1])
 
+            loss_mask = english_training[:,1:] != eng_padding_index
 
-            probs = model.call(train_french[cur_range: cur_range + model.batch_size], train_english[cur_range: cur_range + model.batch_size, :-1])
-
-            loss_mask = train_english[cur_range: cur_range + model.batch_size, 1:] != eng_padding_index
-
-            cur_loss = model.loss_function(probs, train_english[cur_range: cur_range + model.batch_size, 1:], loss_mask)
+            cur_loss = model.loss_function(probs, english_training[:,1:], loss_mask)
 
             cur_loss /= np.count_nonzero(loss_mask)
 
@@ -41,7 +40,6 @@ def train(model, train_french, train_english, eng_padding_index):
 
         gradients = tape.gradient(cur_loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-        cur_range += model.batch_size
 
 
 def test(model, test_french, test_english, eng_padding_index):
