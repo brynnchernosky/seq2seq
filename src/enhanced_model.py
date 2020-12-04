@@ -26,8 +26,8 @@ class Seq2SeqWithAttention(tf.keras.Model):
         self.french_embed = tf.Variable(
             tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
 
-        self.attention_weights1 = 
-        self.attention_weights2 = 
+        # self.attention_weights1 = tf.Variable(tf.random.truncated_normal([0, .1], stddev=.1))
+        # self.attention_weights2 = tf.Variable(tf.random.truncated_normal([0, .1], stddev=.1))
 
         self.scratchpad_dense1 = tf.keras.layers.Dense(128, activation='relu')
         self.scratchpad_dense2 = tf.keras.layers.Dense(english_window_size)
@@ -39,11 +39,10 @@ class Seq2SeqWithAttention(tf.keras.Model):
         :param decoder_input: batched ids corresponding to english sentences
         :return prbs: The 3d probabilities as a tensor, [batch_size x window_size x english_vocab_size]
         """
-        """
+        
         print(encoder_input)
         print("\n")
         print(decoder_input)
-        """
         french_embedded_inputs = tf.nn.embedding_lookup(self.french_embed, encoder_input)
         eng_embedded_inputs = tf.nn.embedding_lookup(self.eng_embed, decoder_input)
         enc_outputs, enc_state = self.gru_encoder(french_embedded_inputs)
@@ -51,6 +50,8 @@ class Seq2SeqWithAttention(tf.keras.Model):
         final_output = np.zeros(len(eng_embedded_inputs))
 
         # in lecture he starts with the stop token as the first input
+        print(decoder_state)
+        print(enc_outputs)
         for i in range(tf.size(eng_embedded_inputs)):
             # this needs to end if W is the stop token..? i think
             # the attentive read enc_output
