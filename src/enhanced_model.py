@@ -31,8 +31,8 @@ class Seq2SeqWithAttention(tf.keras.Model):
         self.attention_weights2 = tf.Variable(
             tf.random.truncated_normal([100,200], stddev=0.01))
 
-        self.scratchpad_dense1 = tf.keras.layers.Dense(128, activation='relu')
-        self.scratchpad_dense2 = tf.keras.layers.Dense(english_window_size)
+        self.scratchpad_dense1 = tf.keras.layers.Dense(256)
+        self.scratchpad_dense2 = tf.keras.layers.Dense(256)
 
     @tf.function
     def call(self, encoder_input, decoder_input):
