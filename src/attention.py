@@ -15,9 +15,9 @@ def attention_func(model, decoder_hidden_state, encoder_output):
         score = tf.matmul(model.attention_weights1,score)
         #shape 200, 100
         score = tf.matmul(model.attention_weights2,score)
-        #shape 100, 100
+        #shape 256, 100
         score = tf.nn.softmax(score)
-        #shape 100, 100
+        #shape 256, 100
         
         # produce attentive read from attention distribution
         weighted_sum = tf.matmul(score,enc)
@@ -26,5 +26,5 @@ def attention_func(model, decoder_hidden_state, encoder_output):
     context = tf.convert_to_tensor(context)
     #shape 14, 100, 256
     context = tf.reduce_sum(context, axis = 0)
-    #shape 100, 256
+    #shape 100, 14
     return context
