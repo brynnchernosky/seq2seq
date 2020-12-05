@@ -15,11 +15,11 @@ class Seq2SeqWithAttention(tf.keras.Model):
         self.embedding_size = 40
         self.learning_rate = 0.01
 
-        self.gru_encoder = tf.keras.layers.GRU(256, return_sequences=True, return_state=True)
-        self.gru_decoder_cell = tf.keras.layers.GRU(256, return_sequences=True, return_state=True)
+        self.gru_encoder = tf.keras.layers.GRU(100, return_sequences=True, return_state=True)
+        self.gru_decoder_cell = tf.keras.layers.GRU(100, return_sequences=True, return_state=True)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
-        self.dense_state_update = tf.keras.layers.Dense(256, activation='relu')
-        self.feed_forward1 = tf.keras.layers.Dense(256, activation='relu')
+
+        self.feed_forward1 = tf.keras.layers.Dense(100, activation='relu')
         self.feed_forward2 = tf.keras.layers.Dense(self.english_vocab_size, activation='softmax')
         self.eng_embed = tf.Variable(
             tf.random.truncated_normal([self.english_vocab_size, self.embedding_size], stddev=0.01))
@@ -27,7 +27,7 @@ class Seq2SeqWithAttention(tf.keras.Model):
             tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
 
         self.attention_weights1 = tf.Variable(
-            tf.random.truncated_normal([200, 512], stddev=0.01))
+            tf.random.truncated_normal([200,200], stddev=0.01))
         self.attention_weights2 = tf.Variable(
             tf.random.truncated_normal([100,200], stddev=0.01))
 
@@ -58,11 +58,15 @@ class Seq2SeqWithAttention(tf.keras.Model):
             #input to GRU is a 3D tensor, with shape [batch, timesteps, feature]; thus, we add a timestep dim
 
             final_output_element, decoder_state = self.gru_decoder_cell(attentive_read, decoder_state)
+            print("hi")
+            print(final_output_element.shape)
+            print(final_output_element)
             final_output.append(final_output_element)
 
             enc_outputs = scratchpad.scratchpad(self, decoder_state, enc_outputs, attentive_read)
 
-        return tf.convert_to_tensor(final_output)
+        print(final_output)
+        return final_output
 
     def accuracy_function(self, prbs, labels, mask):
         """

@@ -3,6 +3,7 @@ import tensorflow as tf
 
 def scratchpad(model, decoder_hidden_state, encoder_output, attentive_read):
     #compute update probability for each state, equation 5
+
     enc_output = tf.slice(encoder_output, [0,0,0],[np.shape(encoder_output)[0],1,np.shape(encoder_output)[2]])
     enc_output = tf.squeeze(enc_output)
     prob = tf.concat([decoder_hidden_state, tf.squeeze(attentive_read), enc_output], 1)
@@ -36,10 +37,9 @@ def scratchpad(model, decoder_hidden_state, encoder_output, attentive_read):
         probs = tf.squeeze(tf.slice(update_probs,[0,i,0],[100,1,256]))
         out = tf.transpose(tf.squeeze(tf.slice(encoder_output,[0,i,0],[100,1,256])))
         output = tf.matmul(probs,out) + tf.matmul((1-probs),tf.transpose(global_update))
-        output = tf.expand_dims(outputs, 1)
-        print(np.shape(outputs))
-        print(np.shape(output))
-        tf.concat([outputs, output], 1)
-        print(np.shape(outputs))
+        output = tf.expand_dims(output, 1)
 
-    return encoder_output #shape 100, 14, 256
+        outputs = tf.concat([outputs, output], 1)
+
+
+    return outputs #shape 100, 14, 256
