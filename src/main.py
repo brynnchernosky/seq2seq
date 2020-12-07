@@ -19,20 +19,19 @@ def train(model, train_french, train_english, eng_padding_index):
     :param eng_padding_index: the padding index, the id of *PAD* token. This integer is used when masking padding labels.
     :return: None
     """
-    cur_range = 0
-    total_loss = 0
-    total_acc = 0
-    total_words = 0
 
-    for i in range(0, np.shape(train_french)[0], model.batch_size):
+    for i in range(0, len(train_french), model.batch_size):
         french_training = train_french[i:i + model.batch_size]
-        english_training = train_english[i:i + model.batch_size]
+        english_training = train_english[i:i + model.batch_size, :-1]
+        labels = train_english[i:i + model.batch_size, 1:]
+
         with tf.GradientTape() as tape:
-            probs = model.call(french_training, english_training[:,:-1])
+            print("here")
+            probs = model.call(french_training, english_training)
 
-            loss_mask = english_training[:,1:] != eng_padding_index
+            loss_mask = labels != eng_padding_index
 
-            cur_loss = model.loss_function(probs, english_training[:,1:], loss_mask)
+            cur_loss = model.loss_function(probs, labels, loss_mask)
 
             cur_loss /= np.count_nonzero(loss_mask)
 
@@ -94,7 +93,7 @@ def main():
 
     print("running enhanced model")
     model = Seq2SeqWithAttention(*model_args)
-    train(model,train_french,train_english, eng_padding_index)
+    train(model, train_french, train_english, eng_padding_index)
 
     #
     # if sys.argv[1] == "RNN":

@@ -19,20 +19,23 @@ class Seq2SeqWithAttention(tf.keras.Model):
         self.gru_decoder_cell = tf.keras.layers.GRU(256, return_sequences=True, return_state=True)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
-        self.feed_forward1 = tf.keras.layers.Dense(100, activation='relu')
-        self.feed_forward2 = tf.keras.layers.Dense(self.english_vocab_size, activation='softmax')
-        self.eng_embed = tf.Variable(
-            tf.random.truncated_normal([self.english_vocab_size, self.embedding_size], stddev=0.01))
+        self.feed_forward1 = tf.keras.layers.Dense(100, activation='relu',name="ff_1")
+        self.feed_forward2 = tf.keras.layers.Dense(self.english_vocab_size, activation='softmax', name="ff_2")
+
         self.french_embed = tf.Variable(
-            tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
+            tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01), name="frn embed")
 
         self.attention_weights1 = tf.Variable(
-            tf.random.truncated_normal([200,512], stddev=0.01))
+            tf.random.truncated_normal([200,512], stddev=0.01), name="at 1")
         self.attention_weights2 = tf.Variable(
-            tf.random.truncated_normal([100,200], stddev=0.01))
+            tf.random.truncated_normal([100,200], stddev=0.01), name="at 2")
 
-        self.scratchpad_dense1 = tf.keras.layers.Dense(100)
-        self.scratchpad_dense2 = tf.keras.layers.Dense(256)
+        self.scratchpad_dense1 = tf.keras.layers.Dense(100, name="scratch1")
+
+        self.scratchpad_dense2 = tf.keras.layers.Dense(256, name="scratch2")
+
+        self.feedforward1 = tf.keras.layers.Dense(200, activation="relu", name="ff1")
+        self.feedforward2 = tf.keras.layers.Dense(english_vocab_size, activation="softmax", name="ff2")
 
     @tf.function
     def call(self, encoder_input, decoder_input):
@@ -41,28 +44,41 @@ class Seq2SeqWithAttention(tf.keras.Model):
         :param decoder_input: batched ids corresponding to english sentences
         :return prbs: The 3d probabilities as a tensor, [batch_size x window_size x english_vocab_size]
         """
-        
+
+        print("call method")
         french_embedded_inputs = tf.nn.embedding_lookup(self.french_embed, encoder_input)
-        eng_embedded_inputs = tf.nn.embedding_lookup(self.eng_embed, decoder_input)
+
         # h's        final state s0
         enc_outputs, enc_state = self.gru_encoder(french_embedded_inputs)
         decoder_state = enc_state
-        final_output = []
+        final_output_tensors = []
 
         # in lecture he starts with the stop token as the first input
-        for i in range(tf.size(eng_embedded_inputs)):
+        for i in range(len(french_embedded_inputs[0])):
+
             attentive_read = attention.attention_func(self, decoder_state, enc_outputs)
-            #produces tensor with shape [batch size, embedding size]
+            # produces tensor with shape [batch size, embedding size]
 
             attentive_read = tf.expand_dims(attentive_read, 1)
-            #input to GRU is a 3D tensor, with shape [batch, timesteps, feature]; thus, we add a timestep dim
+
+            # input to GRU is a 3D tensor, with shape [batch, timesteps, feature]; thus, we add a timestep dim
 
             final_output_element, decoder_state = self.gru_decoder_cell(attentive_read, decoder_state)
-            final_output.append(final_output_element) #100, 1, 256 - middle dimension is because of number of words in sentence -- should revise and make first iteration outside of loop then concatenate tensors in loop like we do in scratchpad
+
+            final_output_element = tf.squeeze(self.feed_forward2(self.feed_forward1(final_output_element)))
+
+
+            final_output_tensors.append(final_output_element) # 100, 1, 256 - middle dimension is because of number of words in sentence -- should revise and make first iteration outside of loop then concatenate tensors in loop like we do in scratchpad
 
             enc_outputs = scratchpad.scratchpad(self, decoder_state, enc_outputs, attentive_read)
 
-        print(final_output)
+
+        final_output = tf.expand_dims(final_output_tensors[0],1)
+
+        for i in range(1, len(final_output_tensors)):
+
+            final_output = tf.concat([final_output, tf.expand_dims(final_output_tensors[i],1)], 1)
+
         return final_output
 
     def accuracy_function(self, prbs, labels, mask):
@@ -76,7 +92,10 @@ class Seq2SeqWithAttention(tf.keras.Model):
         :param mask:  tensor that acts as a padding mask [batch_size x window_size]
         :return: scalar tensor of accuracy of the batch between 0 and 1
         """
+        print("\n\n probs: \n\n")
+        print(prbs)
         decoded_symbols = tf.argmax(input=prbs, axis=2)
+
         accuracy = tf.reduce_mean(tf.boolean_mask(tf.cast(tf.equal(decoded_symbols, labels), dtype=tf.float32), mask))
         return accuracy
 
