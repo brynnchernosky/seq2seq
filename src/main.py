@@ -3,7 +3,7 @@ import tensorflow as tf
 import sys
 
 from enhanced_model import Seq2SeqWithAttention
-from model import Seq2Seq
+from normal_model import Seq2Seq
 from preprocess import get_data, FRENCH_WINDOW_SIZE, ENGLISH_WINDOW_SIZE
 
 from scipy.stats import ttest_rel
@@ -20,13 +20,15 @@ def train(model, train_french, train_english, eng_padding_index):
     :return: None
     """
 
+    print("starting training batches loop ")
     for i in range(0, len(train_french), model.batch_size):
+        print("iteration: " + str(i))
         french_training = train_french[i:i + model.batch_size]
         english_training = train_english[i:i + model.batch_size, :-1]
         labels = train_english[i:i + model.batch_size, 1:]
 
         with tf.GradientTape() as tape:
-            print("here")
+
             probs = model.call(french_training, english_training)
 
             loss_mask = labels != eng_padding_index
@@ -93,6 +95,7 @@ def main():
 
     print("running enhanced model")
     model = Seq2SeqWithAttention(*model_args)
+
     train(model, train_french, train_english, eng_padding_index)
 
     #
