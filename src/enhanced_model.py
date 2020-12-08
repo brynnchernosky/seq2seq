@@ -45,7 +45,6 @@ class Seq2SeqWithAttention(tf.keras.Model):
         :return prbs: The 3d probabilities as a tensor, [batch_size x window_size x english_vocab_size]
         """
 
-        print("call method")
         french_embedded_inputs = tf.nn.embedding_lookup(self.french_embed, encoder_input)
 
         # h's        final state s0
@@ -67,11 +66,9 @@ class Seq2SeqWithAttention(tf.keras.Model):
 
             final_output_element = tf.squeeze(self.feed_forward2(self.feed_forward1(final_output_element)))
 
-
             final_output_tensors.append(final_output_element) # 100, 1, 256 - middle dimension is because of number of words in sentence -- should revise and make first iteration outside of loop then concatenate tensors in loop like we do in scratchpad
 
             enc_outputs = scratchpad.scratchpad(self, decoder_state, enc_outputs, attentive_read)
-
 
         final_output = tf.expand_dims(final_output_tensors[0],1)
 
@@ -92,8 +89,7 @@ class Seq2SeqWithAttention(tf.keras.Model):
         :param mask:  tensor that acts as a padding mask [batch_size x window_size]
         :return: scalar tensor of accuracy of the batch between 0 and 1
         """
-        print("\n\n probs: \n\n")
-        print(prbs)
+
         decoded_symbols = tf.argmax(input=prbs, axis=2)
 
         accuracy = tf.reduce_mean(tf.boolean_mask(tf.cast(tf.equal(decoded_symbols, labels), dtype=tf.float32), mask))
