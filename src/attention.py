@@ -4,6 +4,8 @@ import tensorflow as tf
 
 def attention_func(model, decoder_hidden_state, encoder_output):
     context = []
+    print(decoder_hidden_state)
+    print(encoder_output)
     for i in range(14):
         #creates attention distribution
         enc = tf.squeeze(encoder_output[:,i:i+1,:])

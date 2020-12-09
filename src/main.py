@@ -21,7 +21,7 @@ def train(model, train_french, train_english, eng_padding_index):
     :return: None
     """
 
-    for i in range(0, math.floor(len(train_french)/model.batch_size)*model.batch_size, model.batch_size):
+    for i in range(0, (math.floor(len(train_french)/model.batch_size)*model.batch_size), model.batch_size):
         french_training = train_french[i:i + model.batch_size]
         english_training = train_english[i:i + model.batch_size, :-1]
         labels = train_english[i:i + model.batch_size, 1:]
@@ -58,7 +58,7 @@ def test(model, test_french, test_english, eng_padding_index):
     total_words = 0
     cur_range = 0
 
-    while cur_range + model.batch_size < len(test_french):
+    while cur_range + model.batch_size < (math.floor(len(test_french)/model.batch_size))*model.batch_size:
         probs = model.call(test_french[cur_range: cur_range + model.batch_size], test_english[cur_range: cur_range + model.batch_size, :-1])
         loss_mask = test_english[cur_range: cur_range + model.batch_size, 1:] != eng_padding_index
 
@@ -78,7 +78,7 @@ def test(model, test_french, test_english, eng_padding_index):
 
 def main():
 
-    sample_size = 1
+    sample_size = 2
 
     train_english, test_english, train_french, test_french, \
         english_vocab, french_vocab, eng_padding_index = get_data(
@@ -96,24 +96,38 @@ def main():
     normal_model_perplexity_data = []
     enhanced_model_perplexity_data = []
 
+    normal_model = Seq2Seq(*model_args)
+    normal_checkpoint = tf.train.Checkpoint(model=normal_model)
+    normal_manager = tf.train.CheckpointManager(normal_checkpoint, './normal_chkpnts', max_to_keep=3)
+    # train(normal_model, train_french, train_english, eng_padding_index)
+    # normal_manager.save()
+
+    enhanced_model = Seq2SeqWithAttention(*model_args)
+    enhanced_checkpoint = tf.train.Checkpoint(model=enhanced_model)
+    enhanced_manager = tf.train.CheckpointManager(enhanced_checkpoint, './enhanced_chkpnts', max_to_keep=3)
+    # train(enhanced_model, train_french, train_english, eng_padding_index)
+    # enhanced_manager.save()
+    #
+    normal_checkpoint.restore(normal_manager.latest_checkpoint)
+    enhanced_checkpoint.restore(enhanced_manager.latest_checkpoint)
+    # train(normal_model, train_french, train_english, eng_padding_index)
+    # train(enhanced_model, train_french, train_english, eng_padding_index)
+
+    return
     for _ in range(sample_size):
 
         #   Create model each round, train and test model and append accuracy from test() accordingly
 
-        normal_model = Seq2Seq(*model_args)
-        enhanced_model = Seq2SeqWithAttention(*model_args)
-
-        train(normal_model, train_french, train_english, eng_padding_index)
-        train(enhanced_model, train_french, train_english, eng_padding_index)
-
         reg_perplexity, reg_acc = test(normal_model, test_french, test_english, eng_padding_index)
         enh_perplexity, enh_acc = test(enhanced_model, test_french, test_english, eng_padding_index)
 
+        print(reg_acc)
+        print(reg_perplexity)
+        print(enh_acc)
+        print(enh_perplexity)
+
         normal_model_accuracy_data.append(reg_acc.numpy())
         enhanced_model_accuracy_data.append(enh_acc.numpy())
-
-        print(reg_acc)
-        print(enh_acc)
 
         normal_model_perplexity_data.append(reg_perplexity)
         enhanced_model_perplexity_data.append(enh_perplexity)

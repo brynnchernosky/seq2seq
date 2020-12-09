@@ -21,8 +21,6 @@ class Seq2Seq(tf.keras.Model):
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
         self.feed_forward1 = tf.keras.layers.Dense(256, activation='relu')
         self.feed_forward2 = tf.keras.layers.Dense(self.english_vocab_size, activation='softmax')
-        self.eng_embed = tf.Variable(
-            tf.random.truncated_normal([self.english_vocab_size, self.embedding_size], stddev=0.01))
         self.french_embed = tf.Variable(
             tf.random.truncated_normal([self.french_vocab_size, self.embedding_size], stddev=0.01))
 
@@ -33,10 +31,10 @@ class Seq2Seq(tf.keras.Model):
 		:param decoder_input: batched ids corresponding to english sentences
 		:return prbs: The 3d probabilities as a tensor, [batch_size x window_size x english_vocab_size]
 		"""
+        print("normal model call function")
         french_embedded_inputs = tf.nn.embedding_lookup(self.french_embed, encoder_input)
         layer, final_state = self.gru_encode(french_embedded_inputs)
-        eng_embedded_inputs = tf.nn.embedding_lookup(self.eng_embed, decoder_input)
-        layer2, final_state2 = self.gru_decode(eng_embedded_inputs, initial_state=final_state)
+        layer2, final_state2 = self.gru_decode(layer, initial_state=final_state)
         dense1 = self.feed_forward1(layer2)
         dense2 = self.feed_forward2(dense1)
         return dense2

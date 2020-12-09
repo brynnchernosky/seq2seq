@@ -53,9 +53,11 @@ class Seq2SeqWithAttention(tf.keras.Model):
         final_output_tensors = []
 
         # in lecture he starts with the stop token as the first input
+
         for i in range(len(french_embedded_inputs[0])):
 
             attentive_read = attention.attention_func(self, decoder_state, enc_outputs)
+
             # produces tensor with shape [batch size, embedding size]
 
             attentive_read = tf.expand_dims(attentive_read, 1)
