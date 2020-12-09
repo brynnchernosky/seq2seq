@@ -68,7 +68,7 @@ class Seq2SeqWithAttention(tf.keras.Model):
 
             final_output_element = tf.squeeze(self.feed_forward2(self.feed_forward1(final_output_element)))
 
-            final_output_tensors.append(final_output_element) # 100, 1, 256 - middle dimension is because of number of words in sentence -- should revise and make first iteration outside of loop then concatenate tensors in loop like we do in scratchpad
+            final_output_tensors.append(final_output_element)
 
             enc_outputs = scratchpad.scratchpad(self, decoder_state, enc_outputs, attentive_read)
 

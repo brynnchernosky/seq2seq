@@ -99,21 +99,21 @@ def main():
     normal_model = Seq2Seq(*model_args)
     normal_checkpoint = tf.train.Checkpoint(model=normal_model)
     normal_manager = tf.train.CheckpointManager(normal_checkpoint, './normal_chkpnts', max_to_keep=3)
-    # train(normal_model, train_french, train_english, eng_padding_index)
-    # normal_manager.save()
+    #train(normal_model, train_french, train_english, eng_padding_index)
+    #normal_manager.save()
 
     enhanced_model = Seq2SeqWithAttention(*model_args)
     enhanced_checkpoint = tf.train.Checkpoint(model=enhanced_model)
     enhanced_manager = tf.train.CheckpointManager(enhanced_checkpoint, './enhanced_chkpnts', max_to_keep=3)
-    # train(enhanced_model, train_french, train_english, eng_padding_index)
-    # enhanced_manager.save()
+    #train(enhanced_model, train_french, train_english, eng_padding_index)
+    #enhanced_manager.save()
     #
     normal_checkpoint.restore(normal_manager.latest_checkpoint)
     enhanced_checkpoint.restore(enhanced_manager.latest_checkpoint)
     # train(normal_model, train_french, train_english, eng_padding_index)
     # train(enhanced_model, train_french, train_english, eng_padding_index)
 
-    return
+    #return
     for _ in range(sample_size):
 
         #   Create model each round, train and test model and append accuracy from test() accordingly
